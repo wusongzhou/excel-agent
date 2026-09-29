@@ -2,4 +2,5 @@
 playground/*/
 !playground/input/
 !playground/test_data/
+.venv/
 *.exe
