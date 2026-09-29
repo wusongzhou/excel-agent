@@ -23,3 +23,7 @@ import (
 type options struct {
 	op commandline.Operator
 }
+
+// maxToolOutputChars caps tool responses fed back to the model so a single
+// call cannot blow up the context window.
+const maxToolOutputChars = 20000

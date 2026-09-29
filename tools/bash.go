@@ -19,6 +19,7 @@ package tools
 import (
 	"context"
 	"encoding/json"
+	"runtime"
 	"strings"
 
 	"excel-agent/utils"
@@ -27,23 +28,31 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-var bashToolInfo = &schema.ToolInfo{
-	Name: "bash",
-	Desc: `Run commands in a bash shell
-* When invoking this tool, the contents of the \"command\" parameter does NOT need to be XML-escaped.
+var bashToolParams = schema.NewParamsOneOfByParams(map[string]*schema.ParameterInfo{
+	"command": {
+		Type:     "string",
+		Desc:     "The command to execute",
+		Required: true,
+	},
+})
+
+func bashToolDesc() string {
+	if runtime.GOOS == "windows" {
+		return `Run commands in the Windows command prompt (cmd.exe).
+* When invoking this tool, the contents of the "command" parameter does NOT need to be XML-escaped.
+* Commands are executed via 'cmd.exe /C' in the task working directory, so use Windows command syntax (dir, type, copy, del, findstr...). Unix tools such as rm, ls, grep and sed are NOT available.
+* Python is available; prefer the dedicated python_runner tool for running Python code.
+* Each command runs in a fresh process, so state such as 'cd' or environment variables does NOT persist between calls.
+* Please avoid commands that may produce a very large amount of output.`
+	}
+	return `Run commands in a bash shell
+* When invoking this tool, the contents of the "command" parameter does NOT need to be XML-escaped.
 * You don't have access to the internet via this tool.
 * You do have access to a mirror of common linux and python packages via apt and pip.
-* State is persistent across command calls and discussions with the user.
+* Each command runs in a fresh process, so state such as 'cd' or environment variables does NOT persist between calls.
 * To inspect a particular line range of a file, e.g. lines 10-25, try 'sed -n 10,25p /path/to/the/file'.
 * Please avoid commands that may produce a very large amount of output.
-* Please run long lived commands in the background, e.g. 'sleep 10 &' or start a server in the background.`,
-	ParamsOneOf: schema.NewParamsOneOfByParams(map[string]*schema.ParameterInfo{
-		"command": {
-			Type:     "string",
-			Desc:     "The command to execute",
-			Required: true,
-		},
-	}),
+* Please run long lived commands in the background, e.g. 'sleep 10 &' or start a server in the background.`
 }
 
 func NewBashTool(op commandline.Operator) tool.InvokableTool {
@@ -55,7 +64,11 @@ type bashTool struct {
 }
 
 func (b *bashTool) Info(_ context.Context) (*schema.ToolInfo, error) {
-	return bashToolInfo, nil
+	return &schema.ToolInfo{
+		Name:        "bash",
+		Desc:        bashToolDesc(),
+		ParamsOneOf: bashToolParams,
+	}, nil
 }
 
 type shellInput struct {

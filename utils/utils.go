@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/cloudwego/eino-ext/components/tool/commandline"
 	"github.com/cloudwego/eino/adk"
@@ -118,4 +119,17 @@ func FormatExecutedSteps(in []planexecute.ExecutedStep) string {
 
 func FormatCommandOutput(output *commandline.CommandOutput) string {
 	return fmt.Sprintf("---\nstdout:%v\n---\nstderr:%v\n---", output.Stdout, output.Stderr)
+}
+
+// TruncateString cuts s to at most maxChars bytes without splitting a rune,
+// appending a truncation marker when the content is cut.
+func TruncateString(s string, maxChars int) string {
+	if maxChars <= 0 || len(s) <= maxChars {
+		return s
+	}
+	cut := maxChars
+	for cut > 0 && !utf8.RuneStart(s[cut]) {
+		cut--
+	}
+	return s[:cut] + "\n...[truncated]"
 }

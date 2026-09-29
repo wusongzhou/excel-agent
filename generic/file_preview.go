@@ -63,7 +63,7 @@ func PreviewPath(path string) ([]*PreviewFile, error) {
 			if ext := filepath.Ext(fp); ext != ".xlsx" { // .xls not support
 				pf = &PreviewFile{FilePath: fp}
 			} else {
-				pf, e = previewExcelDocument(path)
+				pf, e = PreviewExcelDocument(fp, 20)
 			}
 			if e != nil {
 				return e
@@ -113,7 +113,9 @@ func getAllFiles(path string) ([]string, error) {
 	return files, nil
 }
 
-func previewExcelDocument(filePath string) (*PreviewFile, error) {
+// PreviewExcelDocument reads sheet previews of an xlsx/xlsm file. maxRows
+// bounds the rows read per sheet, counting the header row.
+func PreviewExcelDocument(filePath string, maxRows int) (*PreviewFile, error) {
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return nil, err
@@ -126,7 +128,7 @@ func previewExcelDocument(filePath string) (*PreviewFile, error) {
 		SingleFilePreviews: nil,
 	}
 	for _, sheetName := range f.GetSheetList() {
-		sfp, err := parseSheet(f, sheetName)
+		sfp, err := parseSheet(f, sheetName, maxRows)
 		if err != nil {
 			return nil, err
 		}
@@ -137,14 +139,18 @@ func previewExcelDocument(filePath string) (*PreviewFile, error) {
 	return pf, nil
 }
 
-func parseSheet(f *excelize.File, sheetName string) (*SingleFilePreview, error) {
+func parseSheet(f *excelize.File, sheetName string, maxRows int) (*SingleFilePreview, error) {
 	preview := &SingleFilePreview{
 		SheetName:   sheetName,
 		Header:      make([]*ExcelCell, 0),
 		Content:     make([][]*ExcelCell, 0),
 		MergedCells: make([]*ExcelCell, 0),
 	}
-	mcs := make([][][]int, 20)
+	rowLimit := maxRows
+	if rowLimit > 10000 {
+		rowLimit = 10000
+	}
+	mcs := make([][][]int, rowLimit)
 	mergedCells, err := f.GetMergeCells(sheetName)
 	if err != nil {
 		return nil, err
@@ -154,7 +160,7 @@ func parseSheet(f *excelize.File, sheetName string) (*SingleFilePreview, error) 
 		if err != nil {
 			return nil, err
 		}
-		if lrow >= 20 {
+		if lrow >= rowLimit {
 			continue
 		}
 
@@ -175,7 +181,7 @@ func parseSheet(f *excelize.File, sheetName string) (*SingleFilePreview, error) 
 	}
 
 	i := 0
-	for rowIter.Next() && i < 20 {
+	for rowIter.Next() && i < maxRows {
 		values, err := rowIter.Columns()
 		if err != nil {
 			return nil, err

@@ -34,7 +34,7 @@ type LocalOperator struct{}
 func (l *LocalOperator) ReadFile(ctx context.Context, path string) (string, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return err.Error(), nil
+		return "", err
 	}
 	return string(b), nil
 }
@@ -67,6 +67,8 @@ func (l *LocalOperator) RunCommand(ctx context.Context, command []string) (*comm
 
 	cmd := exec.CommandContext(ctx, shellCmd[0], shellCmd[1:]...)
 	cmd.Dir = wd
+	// Python defaults to the locale encoding (GBK on zh-CN Windows) for piped output; force UTF-8 so Chinese output stays readable.
+	cmd.Env = append(os.Environ(), "PYTHONUTF8=1", "PYTHONIOENCODING=utf-8")
 
 	outBuf := new(bytes.Buffer)
 	errBuf := new(bytes.Buffer)
