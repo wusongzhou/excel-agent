@@ -18,8 +18,12 @@ package generic
 
 import (
 	"encoding/json"
+	"regexp"
+	"strings"
 
 	"github.com/cloudwego/eino/schema"
+
+	"excel-agent/utils"
 )
 
 type Step struct {
@@ -62,10 +66,34 @@ func (p *Plan) MarshalJSON() ([]byte, error) {
 	return json.Marshal((*Alias)(p))
 }
 
+// UnmarshalJSON is tolerant of the wrappers OpenAI-protocol compatible models
+// add around plan output (markdown code fences, leading/trailing prose,
+// slightly malformed JSON), because not every service honours the
+// response_format=json_schema parameter.
 func (p *Plan) UnmarshalJSON(bytes []byte) error {
 	type Alias Plan
 	a := (*Alias)(p)
-	return json.Unmarshal(bytes, a)
+
+	s := extractPlanJSON(string(bytes))
+	if err := json.Unmarshal([]byte(s), a); err == nil {
+		return nil
+	}
+	return json.Unmarshal([]byte(utils.RepairJSON(s)), a)
+}
+
+var jsonFencePattern = regexp.MustCompile(`(?s)^\s*` + "```" + `(?:json)?\s*(.*?)` + "```" + `\s*$`)
+
+func extractPlanJSON(s string) string {
+	s = strings.TrimSpace(s)
+	if m := jsonFencePattern.FindStringSubmatch(s); len(m) > 1 {
+		s = strings.TrimSpace(m[1])
+	}
+	if i := strings.Index(s, "{"); i >= 0 {
+		if j := strings.LastIndex(s, "}"); j > i {
+			return s[i : j+1]
+		}
+	}
+	return s
 }
 
 var PlanToolInfo = &schema.ToolInfo{

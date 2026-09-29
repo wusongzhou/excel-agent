@@ -18,6 +18,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/cloudwego/eino-ext/components/model/ark"
@@ -74,7 +75,7 @@ func NewChatModel(ctx context.Context, opts ...CreateChatModelOption) (cm model.
 			Temperature: o.Temperature,
 			TopP:        o.TopP,
 		}
-		if o.JsonSchema != nil {
+		if o.JsonSchema != nil && !jsonSchemaDisabled() {
 			conf.ResponseFormat = &openai.ChatCompletionResponseFormat{
 				Type:       openai.ChatCompletionResponseFormatTypeJSONSchema,
 				JSONSchema: o.JsonSchema,
@@ -84,6 +85,9 @@ func NewChatModel(ctx context.Context, opts ...CreateChatModelOption) (cm model.
 	}
 	if err != nil {
 		return nil, err
+	}
+	if cm == nil {
+		return nil, fmt.Errorf("no chat model configured: please set ARK_MODEL/ARK_API_KEY or OPENAI_MODEL/OPENAI_API_KEY environment variables")
 	}
 
 	return cm, nil
@@ -125,4 +129,13 @@ func WithResponseFormatJsonSchema(schema *openai.ChatCompletionResponseFormatJSO
 	return func(o *option) {
 		o.JsonSchema = schema
 	}
+}
+
+// jsonSchemaDisabled reports whether strict json_schema responses should be
+// skipped: not every OpenAI-protocol compatible service supports the
+// response_format=json_schema parameter, and it makes some of them fail.
+// Set OPENAI_DISABLE_JSON_SCHEMA=true to opt out.
+func jsonSchemaDisabled() bool {
+	v := os.Getenv("OPENAI_DISABLE_JSON_SCHEMA")
+	return v == "true" || v == "1"
 }
