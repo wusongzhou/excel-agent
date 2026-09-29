@@ -1,0 +1,5 @@
+.idea/
+playground/*/
+!playground/input/
+!playground/test_data/
+*.exe
