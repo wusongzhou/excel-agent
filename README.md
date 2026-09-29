@@ -30,6 +30,13 @@
 | Go | 1.27 及以上（Windows 请安装 64 位版本） |
 | Python | 3.10 及以上，需安装 pandas / numpy / matplotlib / openpyxl，推荐用 [uv](https://docs.astral.sh/uv/) 管理虚拟环境 |
 
+## 配置方式
+
+支持两种方式，可混用（真实环境变量优先于 `.env`）：
+
+- **项目根目录的 `.env` 文件（推荐）**：复制 `.env.example` 为 `.env` 并填入真实值即可。`.env` 已被 `.gitignore` 忽略，不会被提交到仓库；
+- **系统环境变量**：按下面的变量说明设置。
+
 ## 配置模型（必需，二选一）
 
 **方式一：火山方舟 Ark**
@@ -85,7 +92,7 @@ uv pip install --python .venv/Scripts/python.exe pandas numpy matplotlib openpyx
 uv pip install --python .venv/bin/python pandas numpy matplotlib openpyxl
 ```
 
-Windows 下持久化生效：
+Windows 下持久化生效（也可以直接写进项目根目录的 `.env`）：
 
 ```powershell
 setx EXCEL_AGENT_PYTHON_EXECUTABLE_PATH "C:\path\to\excel-agent\.venv\Scripts\python.exe"

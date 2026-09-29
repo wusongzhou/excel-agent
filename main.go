@@ -40,6 +40,10 @@ import (
 )
 
 func main() {
+	// Load project-local .env before anything reads the configuration;
+	// real environment variables take precedence.
+	loadDotEnv()
+
 	// Set your own query here. e.g.
 	// query := schema.UserMessage("统计附件文件中推荐的小说名称及推荐次数，并将结果写到文件中。凡是带有《》内容都是小说名称，形成表格，表头为小说名称和推荐次数，同名小说只列一行，推荐次数相加")
 	// query := schema.UserMessage("Count the recommended novel names and recommended times in the attachment file, and write the results into the file. The content with "" is the name of the novel, forming a table. The header is the name of the novel and the number of recommendations. The novels with the same name are listed in one row, and the number of recommendations is added")

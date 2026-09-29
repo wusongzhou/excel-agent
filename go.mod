@@ -11,6 +11,7 @@ require (
 	github.com/cloudwego/eino-ext/components/tool/duckduckgo/v2 v2.0.0-20251117090452-bd6375a0b3cf
 	github.com/coze-dev/cozeloop-go v0.1.20
 	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/json-iterator/go v1.1.12
 	github.com/kaptinlin/jsonrepair v0.2.4
 	github.com/volcengine/volcengine-go-sdk v1.2.46
