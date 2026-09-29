@@ -4,7 +4,7 @@
 
 本项目从 [cloudwego/eino-examples](https://github.com/cloudwego/eino-examples) 的 `adk/multiagent/integration-excel-agent` 示例独立而来，并做了以下改进：
 
-- Windows 适配：`read_file` / `tree` 工具改为 Go 原生实现，不再依赖 GNU 工具链和 `python3` 命令；bash 工具描述按操作系统自适应
+- Windows 适配：`read_file` / `tree` 工具改为 Go 原生实现，不再依赖 GNU 工具链和 `python3` 命令；命令执行默认走 PowerShell（优先 pwsh，正确透传退出码并强制 UTF-8 输出）
 - OpenAI 协议兼容接口支持：自定义 `OPENAI_BASE_URL`，可选关闭 `json_schema` 严格响应，计划输出解析容错（代码块 / 前后杂讯 / 轻微坏 JSON）
 - 中文 Windows 下强制 Python 以 UTF-8 输出，避免 GBK 乱码
 
@@ -61,6 +61,7 @@ export OPENAI_BASE_URL=""  # 兼容接口必填，例如智谱: https://open.big
 | `EXCEL_AGENT_PYTHON_EXECUTABLE_PATH` | 执行 Python 代码所用的解释器，默认 `python`。**强烈建议指向虚拟环境**，否则 Agent 自动 `pip install` 依赖时可能被系统 Python 阻断导致任务失败 |
 | `EXCEL_AGENT_INPUT_DIR` | 附件输入目录（绝对路径），默认 `playground/input` |
 | `EXCEL_AGENT_WORK_DIR` | 工作目录（绝对路径），默认 `playground/<任务id>` |
+| `EXCEL_AGENT_WINDOWS_SHELL` | Windows 下命令执行使用的 shell，默认 `powershell`（pwsh 优先），设为 `cmd` 回退到 cmd.exe |
 | `ARK_VISION_API_KEY` / `ARK_VISION_MODEL` / `ARK_VISION_BASE_URL` / `ARK_VISION_REGION` | 视觉模型配置，配置后 ReportAgent 的 `image_reader` 工具才会启用 |
 | `COZELOOP_WORKSPACE_ID` / `COZELOOP_API_TOKEN` | 接入 [CozeLoop](https://loop.coze.cn) 全链路追踪 |
 
@@ -145,7 +146,7 @@ excel-agent
 ## 注意事项
 
 - Agent 会**真实执行** shell 命令和 Python 代码，均限制在工作目录内进行，请只放入你允许其处理的文件；
-- Windows 下 bash 工具实际通过 `cmd.exe /C` 执行，工具描述已告知模型使用 Windows 命令语法；
+- Windows 下命令默认通过 PowerShell 执行（优先 pwsh / PowerShell 7，其次系统自带的 Windows PowerShell 5.1），工具描述已告知模型使用 PowerShell 语法；设置 `EXCEL_AGENT_WINDOWS_SHELL=cmd` 可回退；
 - 若兼容接口上报格式相关错误（如 planner 解析失败），先尝试设置 `OPENAI_DISABLE_JSON_SCHEMA=true`。
 
 ## 许可

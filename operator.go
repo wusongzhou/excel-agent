@@ -60,7 +60,7 @@ func (l *LocalOperator) RunCommand(ctx context.Context, command []string) (*comm
 	var shellCmd []string
 	switch runtime.GOOS {
 	case "windows":
-		shellCmd = append([]string{"cmd.exe", "/C"}, command...)
+		shellCmd = buildWindowsCommand(command)
 	default:
 		shellCmd = []string{"/bin/sh", "-c", strings.Join(command, " ")}
 	}
@@ -83,4 +83,40 @@ func (l *LocalOperator) RunCommand(ctx context.Context, command []string) (*comm
 		Stdout: outBuf.String(),
 		Stderr: errBuf.String(),
 	}, nil
+}
+
+// buildWindowsCommand assembles the command line for Windows. PowerShell is
+// the default (pwsh if installed, otherwise Windows PowerShell) because it
+// offers the agent a richer command set than cmd.exe; setting
+// EXCEL_AGENT_WINDOWS_SHELL=cmd restores the previous behaviour.
+func buildWindowsCommand(command []string) []string {
+	if os.Getenv("EXCEL_AGENT_WINDOWS_SHELL") == "cmd" {
+		return append([]string{"cmd.exe", "/C"}, command...)
+	}
+
+	shell := "powershell"
+	if path, err := exec.LookPath("pwsh"); err == nil {
+		shell = path
+	}
+
+	var script string
+	if len(command) == 1 {
+		script = command[0]
+	} else {
+		// A program and its arguments (e.g. python_runner); the call
+		// operator (&) keeps quoted paths intact.
+		quoted := make([]string, len(command))
+		for i, arg := range command {
+			quoted[i] = "'" + strings.ReplaceAll(arg, "'", "''") + "'"
+		}
+		script = "& " + strings.Join(quoted, " ")
+	}
+
+	// Windows PowerShell exits 0 even when the last native command failed and
+	// emits output in the OEM code page (GBK on zh-CN); both are fixed here.
+	script = "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n" +
+		script +
+		"\nif ($LASTEXITCODE) { exit $LASTEXITCODE } elseif (-not $?) { exit 1 }"
+
+	return []string{shell, "-NoProfile", "-NonInteractive", "-Command", script}
 }

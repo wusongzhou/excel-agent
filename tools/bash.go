@@ -38,11 +38,12 @@ var bashToolParams = schema.NewParamsOneOfByParams(map[string]*schema.ParameterI
 
 func bashToolDesc() string {
 	if runtime.GOOS == "windows" {
-		return `Run commands in the Windows command prompt (cmd.exe).
+		return `Run commands in Windows PowerShell.
 * When invoking this tool, the contents of the "command" parameter does NOT need to be XML-escaped.
-* Commands are executed via 'cmd.exe /C' in the task working directory, so use Windows command syntax (dir, type, copy, del, findstr...). Unix tools such as rm, ls, grep and sed are NOT available.
-* Python is available; prefer the dedicated python_runner tool for running Python code.
+* Commands are executed via 'powershell -Command' in the task working directory, so use PowerShell syntax (Get-ChildItem, Copy-Item, Remove-Item...). The aliases ls, cp, mv, rm and cat also work.
+* Chain commands with ';' — the '&&' operator is not supported by Windows PowerShell 5.1.
 * Each command runs in a fresh process, so state such as 'cd' or environment variables does NOT persist between calls.
+* Python is available; prefer the dedicated python_runner tool for running Python code.
 * Please avoid commands that may produce a very large amount of output.`
 	}
 	return `Run commands in a bash shell
