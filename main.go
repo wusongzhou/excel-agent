@@ -51,7 +51,7 @@ func main() {
 	// query := schema.UserMessage("读取 模拟出题.csv 中的表格内容，规范格式将题目、答案、解析、选项放在同一行，简答题只把答案写入解析即可")
 	// query := schema.UserMessage("Read the table content in the 模拟出题.csv, put the question, answer, resolution and options in the same line in a standardized format, and simply write the answer into the resolution")
 
-	query := schema.UserMessage("请帮我将 questions.csv 表格中的第一列提取到一个新的 csv 中")
+	query := schema.UserMessage("请帮我把客户列表.xlsx这个表格中的内容按照客户经理放在一起并统计各个客户经理共有多少客户")
 	// query := schema.UserMessage("Please help me extract the first column in question.csv table into a new csv")
 
 	ctx := context.Background()
@@ -151,7 +151,11 @@ func main() {
 		endSpanFn(ctx, "finished without output message")
 	}
 
-	time.Sleep(time.Second * 30)
+	// Give async CozeLoop spans a moment to flush before the process exits;
+	// without CozeLoop configured there is nothing to wait for.
+	if os.Getenv("COZELOOP_WORKSPACE_ID") != "" && os.Getenv("COZELOOP_API_TOKEN") != "" {
+		time.Sleep(time.Second * 5)
+	}
 }
 
 func newExcelAgent(ctx context.Context) (adk.Agent, error) {

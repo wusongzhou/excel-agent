@@ -37,9 +37,23 @@
 - **项目根目录的 `.env` 文件（推荐）**：复制 `.env.example` 为 `.env` 并填入真实值即可。`.env` 已被 `.gitignore` 忽略，不会被提交到仓库；
 - **系统环境变量**：按下面的变量说明设置。
 
-## 配置模型（必需，二选一）
+## 配置模型（必需，三选一）
 
-**方式一：火山方舟 Ark**
+**方式一：智谱 GLM（推荐）**
+
+```bash
+export ZHIPU_API_KEY=""    # （必填）智谱 API Key
+export ZHIPU_MODEL=""      # （必填）模型名称，如 glm-5.3-flash
+export ZHIPU_BASE_URL=""   # （可选）默认 https://open.bigmodel.cn/api/paas/v4
+```
+
+智谱适配说明：
+
+- `glm-5.3-flash` 是视觉模型，配置 `ZHIPU_*` 后 ReportAgent 的 `image_reader` 工具自动启用（无需单独配置视觉模型，也可用 `ZHIPU_VISION_MODEL` 指定其他视觉模型）；
+- bigmodel 对 `glm-5.3-flash` 会静默忽略 `response_format=json_schema`，本项目已自动改用生效的 `json_object` 模式；
+- 该模型无法关闭思考模式，`EXCEL_AGENT_REASONING_EFFORT`（low/medium/high/max）是主要提速手段。
+
+**方式二：火山方舟 Ark**
 
 ```bash
 export ARK_API_KEY=""    # （必填）Ark Model API Key
@@ -48,7 +62,7 @@ export ARK_BASE_URL=""   # （可选）Ark Model base_url
 export ARK_REGION=""     # （可选）Ark Model region
 ```
 
-**方式二：OpenAI 协议兼容接口**（OpenAI / 智谱 / DeepSeek 等均可）
+**方式三：OpenAI 协议兼容接口**（OpenAI / DeepSeek 等均可）
 
 ```bash
 export OPENAI_API_KEY=""   # （必填）API Key
@@ -69,7 +83,9 @@ export OPENAI_BASE_URL=""  # 兼容接口必填，例如智谱: https://open.big
 | `EXCEL_AGENT_INPUT_DIR` | 附件输入目录（绝对路径），默认 `playground/input` |
 | `EXCEL_AGENT_WORK_DIR` | 工作目录（绝对路径），默认 `playground/<任务id>` |
 | `EXCEL_AGENT_WINDOWS_SHELL` | Windows 下命令执行使用的 shell，默认 `powershell`（pwsh 优先），设为 `cmd` 回退到 cmd.exe |
-| `ARK_VISION_API_KEY` / `ARK_VISION_MODEL` / `ARK_VISION_BASE_URL` / `ARK_VISION_REGION` | 视觉模型配置，配置后 ReportAgent 的 `image_reader` 工具才会启用 |
+| `EXCEL_AGENT_ENABLE_WEB_SEARCH` | 是否给 Executor 配置联网搜索工具（DuckDuckGo），默认开启；国内网络易超时可设为 `false` |
+| `EXCEL_AGENT_REASONING_EFFORT` | 智谱/兼容接口的 `reasoning_effort` 参数（low/medium/high/max），不设用服务端默认 |
+| `ARK_VISION_API_KEY` / `ARK_VISION_MODEL` / `ARK_VISION_BASE_URL` / `ARK_VISION_REGION` | Ark 视觉模型配置；配置 `ZHIPU_*` 时会自动复用智谱主模型（VLM）读图，也可用 `ZHIPU_VISION_MODEL` 单独指定 |
 | `COZELOOP_WORKSPACE_ID` / `COZELOOP_API_TOKEN` | 接入 [CozeLoop](https://loop.coze.cn) 全链路追踪 |
 
 ## 快速开始

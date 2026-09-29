@@ -18,6 +18,7 @@ package executor
 
 import (
 	"context"
+	"os"
 
 	"github.com/cloudwego/eino-ext/components/tool/commandline"
 	"github.com/cloudwego/eino/adk"
@@ -63,19 +64,23 @@ func NewExecutor(ctx context.Context, operator commandline.Operator) (adk.Agent,
 		return nil, err
 	}
 
-	sa, err := newWebSearchAgent(ctx)
-	if err != nil {
-		return nil, err
+	executorTools := []tool.BaseTool{adk.NewAgentTool(ctx, ca)}
+	// DuckDuckGo is unreachable from some networks (e.g. mainland China) and
+	// stalls the executor on timeouts; EXCEL_AGENT_ENABLE_WEB_SEARCH=false
+	// drops the tool entirely.
+	if os.Getenv("EXCEL_AGENT_ENABLE_WEB_SEARCH") != "false" {
+		sa, err := newWebSearchAgent(ctx)
+		if err != nil {
+			return nil, err
+		}
+		executorTools = append(executorTools, adk.NewAgentTool(ctx, sa))
 	}
 
 	a, err := planexecute.NewExecutor(ctx, &planexecute.ExecutorConfig{
 		Model: cm,
 		ToolsConfig: adk.ToolsConfig{
 			ToolsNodeConfig: compose.ToolsNodeConfig{
-				Tools: []tool.BaseTool{
-					adk.NewAgentTool(ctx, ca),
-					adk.NewAgentTool(ctx, sa),
-				},
+				Tools: executorTools,
 			},
 		},
 		MaxIterations: 20,

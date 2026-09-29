@@ -20,9 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
-	"github.com/cloudwego/eino-ext/components/model/ark"
 	"github.com/cloudwego/eino-ext/components/tool/commandline"
 	"github.com/cloudwego/eino/adk"
 	"github.com/cloudwego/eino/adk/prebuilt/planexecute"
@@ -47,17 +45,12 @@ func NewReportAgent(ctx context.Context, operator commandline.Operator) (adk.Age
 		return nil, err
 	}
 
+	visionModel, err := utils.NewVisionModel(ctx)
+	if err != nil {
+		return nil, err
+	}
 	var imageReaderTool tool.InvokableTool
-	if modelName := os.Getenv("ARK_VISION_MODEL"); modelName != "" {
-		visionModel, err := ark.NewChatModel(ctx, &ark.ChatModelConfig{
-			APIKey:  os.Getenv("ARK_VISION_API_KEY"),
-			BaseURL: os.Getenv("ARK_VISION_BASE_URL"),
-			Region:  os.Getenv("ARK_VISION_REGION"),
-			Model:   modelName,
-		})
-		if err != nil {
-			return nil, err
-		}
+	if visionModel != nil {
 		imageReaderTool = tools.NewToolImageReader(visionModel)
 	}
 
