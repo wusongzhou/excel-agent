@@ -85,6 +85,7 @@ export OPENAI_BASE_URL=""  # 兼容接口必填，例如智谱: https://open.big
 | `EXCEL_AGENT_WINDOWS_SHELL` | Windows 下命令执行使用的 shell，默认 `powershell`（pwsh 优先），设为 `cmd` 回退到 cmd.exe |
 | `EXCEL_AGENT_ENABLE_WEB_SEARCH` | 是否给 Executor 配置联网搜索工具（DuckDuckGo），默认开启；国内网络易超时可设为 `false` |
 | `EXCEL_AGENT_REASONING_EFFORT` | 智谱/兼容接口的 `reasoning_effort` 参数（low/medium/high/max），不设用服务端默认 |
+| `EXCEL_AGENT_MODEL_RETRY` | 模型请求遇 429 限流/网关错误时自动退避重试（默认开启，退避 5s/10s/20s），设为 `false` 关闭 |
 | `ARK_VISION_API_KEY` / `ARK_VISION_MODEL` / `ARK_VISION_BASE_URL` / `ARK_VISION_REGION` | Ark 视觉模型配置；配置 `ZHIPU_*` 时会自动复用智谱主模型（VLM）读图，也可用 `ZHIPU_VISION_MODEL` 单独指定 |
 | `COZELOOP_WORKSPACE_ID` / `COZELOOP_API_TOKEN` | 接入 [CozeLoop](https://loop.coze.cn) 全链路追踪 |
 

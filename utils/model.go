@@ -99,6 +99,11 @@ func NewChatModel(ctx context.Context, opts ...CreateChatModelOption) (cm model.
 	if cm == nil {
 		return nil, fmt.Errorf("no chat model configured: set ARK_MODEL, ZHIPU_MODEL or OPENAI_MODEL via environment variables or the project .env file")
 	}
+	// A task issues a long series of model requests; retry rate limits
+	// instead of failing the whole run.
+	if os.Getenv("EXCEL_AGENT_MODEL_RETRY") != "false" {
+		cm = newRetryingChatModel(cm)
+	}
 
 	return cm, nil
 }
